@@ -1,10 +1,24 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel Application Deployment Guide
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+    <a href="https://laravel.com" target="_blank">
+        <img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo">
+    </a>
+</p>
+
+<p align="center">
+    <a href="https://github.com/laravel/framework/actions">
+        <img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status">
+    </a>
+    <a href="https://packagist.org/packages/laravel/framework">
+        <img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads">
+    </a>
+    <a href="https://packagist.org/packages/laravel/framework">
+        <img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version">
+    </a>
+    <a href="https://packagist.org/packages/laravel/framework">
+        <img src="https://img.shields.io/packagist/l/laravel/framework" alt="License">
+    </a>
 </p>
 
 ## About Laravel
@@ -21,46 +35,82 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-## Learning Laravel
+## Deployment Guide
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+This guide will help you set up and deploy the Laravel application locally using Docker.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Prerequisites
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- Docker should be installed and running on your system. If not, you can install Docker by following the instructions [here](https://docs.docker.com/get-docker/).
 
-## Laravel Sponsors
+## Deployment Steps
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+1. **Clone the Repository**
 
-### Premium Partners
+    ```bash
+    git clone <repository-url>
+    cd <repository-directory>
+    ```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+2. **Run the Start Script**
 
-## Contributing
+    Execute the `start.sh` command in the root directory of the cloned repository. This script will:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    - Check if Docker is installed and running.
+    - Start the application containers, including necessary migrations and seeders.
 
-## Code of Conduct
+    ```bash
+    ./start.sh
+    ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+3. **Access the Endpoints**
 
-## Security Vulnerabilities
+    The Laravel application exposes the following endpoints:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+    - GET /users/expensive-order
+    - GET /users/highest-sales
+    - GET /users/purchased-all-products
 
-## License
+    You can use tools like `curl` or Postman to access these endpoints. Refer to the provided documentation for details on how these endpoints work.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+4. **Environment Variables**
+
+    To connect to the database, you need to set the following environment variables in the `.env` file en the project's root folder:
+
+    ```makefile
+    APP_NAME=Laravel
+    APP_ENV=local
+    APP_KEY=base64:1fqyHwdSLVmJtFOFegJAnU8xPuf8VZTnISA8eTKIfSU=
+    APP_DEBUG=true
+    APP_URL=http://localhost
+
+    DB_CONNECTION=mysql
+    DB_HOST=db
+    DB_PORT=3306
+    DB_DATABASE=heytutor
+    DB_USERNAME=heytutor
+    DB_PASSWORD=secret
+    ```
+
+    Note that we're using port `33060` to connect locally to the database to avoid conflicts with other MySQL instances.
+
+## Complex Queries explanation
+
+    - getUsersWithMostExpensiveOrders
+
+    ```bash
+    SELECT u.*, o.*
+    FROM users u
+    JOIN orders o ON o.user_id = u.id
+    JOIN (
+        SELECT user_id, MAX(total_amount) AS max_amount
+        FROM orders
+        GROUP BY user_id
+    ) AS max_orders ON o.user_id = max_orders.user_id AND o.total_amount = max_orders.max_amount
+    ```
+
+
+
+## Troubleshooting
+
+If you encounter any issues during deployment, please feel free to reach out to me for assistance.
