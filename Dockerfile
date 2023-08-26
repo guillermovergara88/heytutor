@@ -1,47 +1,57 @@
-FROM php:8.1-fpm
+# Build Stage
+FROM composer:2.1 AS build
 
-# Copy composer.lock and composer.json
-COPY composer.lock composer.json /var/www/
+WORKDIR /app
 
-# Set working directory
-WORKDIR /var/www
+# Copy only the composer files first and install dependencies without dev dependencies
+COPY composer.json composer.lock /app/
+RUN composer self-update
+RUN composer install --no-dev --no-scripts --no-autoloader
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpng-dev \
-    libjpeg62-turbo-dev \
-    libfreetype6-dev \
+# Copy the rest of the application code
+COPY . /app
+
+# Generate optimized autoload files
+RUN composer dump-autoload --optimize --no-dev
+
+# Production Stage
+FROM php:8.1-fpm-alpine AS production
+
+# Install necessary packages and extensions
+RUN apk --no-cache add \
+    libzip \
+    libpng \
+    libjpeg-turbo \
+    libwebp \
+    zlib \
+    libxml2 \
+    freetype-dev # Add freetype-dev package here
+
+# Install GD extension with freetype support
+RUN apk --no-cache add --virtual .build-deps \
     libzip-dev \
-    libonig-dev \
-    locales \
-    zip \
-    unzip \
-    git \
-    curl
+    libpng-dev \
+    libjpeg-turbo-dev \
+    libwebp-dev \
+    zlib-dev \
+    libxml2-dev \
+    && docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg --with-webp \
+    && docker-php-ext-install -j$(nproc) gd pdo_mysql \
+    && apk del .build-deps
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# Copy application artifacts from the build stage
+COPY --from=build /app /var/www
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl
+# Create a user and group for the application
+RUN addgroup -g 1000 www && adduser -u 1000 -S -D -G www www
 
-# Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Create user and group for Laravel application
-RUN groupadd -g 1000 www
-RUN useradd -u 1000 -ms /bin/bash -g www www
-
-# Copy existing application directory contents
-COPY . /var/www
-
-# Copy existing application directory permissions
-COPY --chown=www:www . /var/www
-
-# Change current user to www
-USER www
+# Set permissions and ownership
+RUN chown -R www:www /var/www
 
 # Expose port 9000 and start php-fpm server
 EXPOSE 9000
+
+# Switch to the non-root user
+USER www
+
 CMD ["php-fpm"]
