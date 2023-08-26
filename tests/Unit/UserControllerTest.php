@@ -107,16 +107,16 @@ class UserControllerTest extends TestCase
 
         Order::factory()->create([
             'user_id' => $user1->id,
-            'product_id' => Product::factory()->create(['price' => 10000.00]),
+            'product_id' => Product::factory()->create(['price' => 10000]),
             'quantity' => 1,
-            'total_amount' => 10000.00,
+            'total_amount' => 10000,
         ]);
 
         Order::factory()->create([
             'user_id' => $user2->id,
-            'product_id' => Product::factory()->create(['price' => 10000.00]),
+            'product_id' => Product::factory()->create(['price' => 10000]),
             'quantity' => 1,
-            'total_amount' => 10000.00,
+            'total_amount' => 10000,
         ]);
 
         $response = $this->get('/users/highest-sales');
@@ -133,7 +133,7 @@ class UserControllerTest extends TestCase
                 'orders' => [
                     [
                         'user_id' => $user1->id,
-                        'total_sales' => '10000.00',
+                        'total_amount' => 10000,
                     ],
                 ],
             ],
@@ -146,7 +146,7 @@ class UserControllerTest extends TestCase
                 'orders' => [
                     [
                         'user_id' => $user2->id,
-                        'total_sales' => '10000.00',
+                        'total_amount' => 10000,
                     ],
                 ],
             ],
@@ -160,16 +160,16 @@ class UserControllerTest extends TestCase
 
         Order::factory()->create([
             'user_id' => $user1->id,
-            'product_id' => Product::factory()->create(['price' => 25000.00]),
+            'product_id' => Product::factory()->create(['price' => 25000]),
             'quantity' => 1,
-            'total_amount' => 25000.00,
+            'total_amount' => 25000,
         ]);
 
         Order::factory()->create([
             'user_id' => $user2->id,
-            'product_id' => Product::factory()->create(['price' => 10000.00]),
+            'product_id' => Product::factory()->create(['price' => 10000]),
             'quantity' => 1,
-            'total_amount' => 10000.00,
+            'total_amount' => 10000,
         ]);
 
         $response = $this->get('/users/highest-sales');
@@ -186,7 +186,7 @@ class UserControllerTest extends TestCase
                 'orders' => [
                     [
                         'user_id' => $user1->id,
-                        'total_sales' => '25000.00',
+                        'total_amount' => 25000,
                     ],
                 ],
             ],

@@ -99,19 +99,23 @@ This guide will help you set up and deploy the Laravel application locally using
 ```bash
     - Retrieve Users and Their Most Expensive Order:
 
-    SELECT u.*, o.*
-    FROM users u
-    JOIN orders o ON o.user_id = u.id
+    SELECT users.*, orders.*
+    FROM users
+    LEFT JOIN orders ON users.id = orders.user_id
     JOIN (
-        SELECT user_id, MAX(total_amount) AS max_amount
-        FROM orders
-        GROUP BY user_id
-    ) AS max_orders ON o.user_id = max_orders.user_id AND o.total_amount = max_orders.max_amount
+        SELECT 
+            user_id, 
+            MAX(total_amount) AS max_amount
+        FROM 
+            orders 
+        GROUP BY 
+            user_id
+    ) AS max_orders ON orders.user_id = max_orders.user_id AND orders.total_amount = max_orders.max_amount;
 
-1. First select all columns from both users and orders table.
-2. Setup an alias for readability purposes.
-3. The first join just connects the users and orders table based on the user_id column from orders and the id from users.
-4. The second join uses an alias which is the max_amount and, by using the MAX() MySQL function we retrieve the highest value on the total_amount column from orders, we group them by user so we get unique values for each user.
+1. First select all columns from both the users and orders tables.
+2. The first join establishes a connection between the users and orders tables using the user_id column from orders and the id column from users.
+3. "max_amount" alias is created for readability purposes on the total_amount column.
+4. The second join uses the previously created alias to represent the subquery results. The MAX() function is utilized to determine the highest value in the total_amount column from the orders table. These values are grouped by user_id to ensure unique values for each user.
 ```
   
     
@@ -134,24 +138,29 @@ This guide will help you set up and deploy the Laravel application locally using
 ```bash
     - Retrieve the User or Users (if they have the same total sales) with the Highest Total Sales:
     
-    SELECT `users`.*
-    FROM `users`
-    INNER JOIN `orders` AS `max_sales_orders` ON `users`.`id` = `max_sales_orders`.`user_id`
-    GROUP BY `users`.`id`
-    HAVING SUM(max_sales_orders.total_amount) = (
-        SELECT SUM(total_amount)
-        FROM orders
-        GROUP BY user_id
-        ORDER BY SUM(total_amount) DESC
+    SELECT * FROM `users` WHERE `users`.`id` IN (
+    SELECT `user_id`
+    FROM (
+        SELECT `user_id`, SUM(total_amount) AS total_sales
+        FROM `orders`
+        GROUP BY `user_id`
+    ) AS `user_sales`
+    WHERE `user_sales`.`total_sales` >= (
+        SELECT SUM(total_amount) AS max_total_sales
+        FROM `orders`
+        GROUP BY `user_id`
+        ORDER BY `max_total_sales` DESC
         LIMIT 1
-    );
-    
-1. Select all columns from the users table.
-2. Use an inner join to combine the users table with a subquery aliased as max_sales_orders using the user_id field.
-3. Group the result by the users->id column.
-4. Use the HAVING clause to filter the result based on the sum of total_amount from the max_sales_orders subquery, which calculates the highest total sales. The subquery in the HAVING clause finds the total sales of the user (or users) with the highest sales by summing the total_amount individually, then ordering the results in descending order and selecting the highest value with `LIMIT 1`.
+    )
+);
 
+1. First select all columns from the users table.
+2. The subquery calculates the total sales for each user by summing up the `total_amount` column from the `orders` table, grouping them by user_id.
+3. The outer subquery `(SELECT user_id ...)` selects the user IDs where the total sales are greater than or equal to the maximum total sales achieved by any user.
+4. The inner subquery `(SELECT SUM(total_amount) ...)` calculates the maximum total sales achieved by any user and orders the results in descending order.
+5. The final result returns a list of users whose total sales are equal to or exceed the highest total sales achieved by any user.
 ```
+
 ## Troubleshooting
 
 If you encounter any issues during deployment, please feel free to reach out to me for assistance.
