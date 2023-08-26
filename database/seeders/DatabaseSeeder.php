@@ -2,7 +2,12 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
+use App\Models\Order;
+use App\Models\Product;
+use Database\Seeders\UsersTableSeeder;
+use Database\Seeders\OrdersTableSeeder;
+use Database\Seeders\ProductsTableSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -12,11 +17,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
+        if (User::count() === 0) {
+            $this->call(UsersTableSeeder::class);
+        }
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        if (Product::count() === 0) {
+            $this->call(ProductsTableSeeder::class);
+        }
+
+        if (Order::count() === 0) {
+            $this->call(OrdersTableSeeder::class);
+        }
     }
 }
