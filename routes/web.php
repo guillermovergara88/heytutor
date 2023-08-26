@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,4 +16,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::group(['prefix' => 'users'], function () {
+    Route::get('expensive-order', [UserController::class, 'getUsersWithMostExpensiveOrders']);
+    Route::get('purchased-all-products', [UserController::class, 'getUsersWhoPurchasedAllProducts']);
+    Route::get('highest-sales', [UserController::class, 'getUsersWithHighestTotalSales']);
 });
