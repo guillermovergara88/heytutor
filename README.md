@@ -176,7 +176,7 @@ php artisan queue:work --queue=default --tries=3 &
 
 Optionally, we could use Supervisor to monitor and restart workers if they fail or are terminated.
 
-
+Source: [Laravel Documentation](https://laravel.com/docs/10.x/queues#running-the-queue-worker)
 ## Troubleshooting
 
 If you encounter any issues during deployment, please feel free to reach out to me for assistance.
