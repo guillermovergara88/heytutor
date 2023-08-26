@@ -2,17 +2,15 @@
 
 namespace App\Models;
 
-use App\Models\Order;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Model;
 
-class User extends Authenticatable
+class Product extends Model
 {
-    use HasFactory, Notifiable;
+    use HasFactory;
 
     protected $fillable = [
-        'name', 'email',
+        'name', 'price',
     ];
 
     public function orders()
