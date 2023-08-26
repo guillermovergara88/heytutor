@@ -161,6 +161,22 @@ This guide will help you set up and deploy the Laravel application locally using
 5. The final result returns a list of users whose total sales are equal to or exceed the highest total sales achieved by any user.
 ```
 
+## Multiple-Workers Approach
+
+For implementing multiple workers will require involving a queue system such as Laravel's built-in queue functionality that utilizes tools like Redis. 
+
+1. First we should configure the queue connectiong on config/queue.php
+2. Then we should create the tasks we want to asynchronously process (Jobs).
+3. Once dispatched, and we have the application running on `php artisan queue:work" depending on how many workers we want. In example, if we want two workers it should be: 
+
+```bash
+php artisan queue:work --queue=default --tries=3 & 
+php artisan queue:work --queue=default --tries=3 &
+```
+
+Optionally, we could use Supervisor to monitor and restart workers if they fail or are terminated.
+
+
 ## Troubleshooting
 
 If you encounter any issues during deployment, please feel free to reach out to me for assistance.
