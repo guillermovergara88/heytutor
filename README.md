@@ -48,8 +48,8 @@ This guide will help you set up and deploy the Laravel application locally using
 1. **Clone the Repository**
 
     ```bash
-    git clone <repository-url>
-    cd <repository-directory>
+    git clone git@github.com:guillermovergara88/heytutor.git
+    cd heytutor
     ```
 
 2. **Run the Start Script**
@@ -96,9 +96,9 @@ This guide will help you set up and deploy the Laravel application locally using
 
 ## Complex Queries explanation
 
-    - getUsersWithMostExpensiveOrders
+```bash
+    - Retrieve Users and Their Most Expensive Order:
 
-    ```bash
     SELECT u.*, o.*
     FROM users u
     JOIN orders o ON o.user_id = u.id
@@ -107,10 +107,51 @@ This guide will help you set up and deploy the Laravel application locally using
         FROM orders
         GROUP BY user_id
     ) AS max_orders ON o.user_id = max_orders.user_id AND o.total_amount = max_orders.max_amount
-    ```
+
+1. First select all columns from both users and orders table.
+2. Setup an alias for readability purposes.
+3. The first join just connects the users and orders table based on the user_id column from orders and the id from users.
+4. The second join uses an alias which is the max_amount and, by using the MAX() MySQL function we retrieve the highest value on the total_amount column from orders, we group them by user so we get unique values for each user.
+```
+  
+    
+```bash
+    - Retrieve Users Who Have Purchased All Products:
+
+    SELECT u.*
+    FROM users u
+    JOIN orders o ON u.id = o.user_id
+    GROUP BY u.id
+    HAVING COUNT(DISTINCT o.product_id) = (SELECT COUNT(*) FROM products);
+    
+1. First select all columns from users table.
+2. Then join users with orders based on the order->user_id field and user->id
+3. Group them by users id to get unique results on the return.
+4. HAVING clause to filter the results to users who have purchased all products, the count of DISTINCT should be equal to the total count of products to match the criteria.
+```
 
 
+```bash
+    - Retrieve the User or Users (if they have the same total sales) with the Highest Total Sales:
+    
+    SELECT `users`.*
+    FROM `users`
+    INNER JOIN `orders` AS `max_sales_orders` ON `users`.`id` = `max_sales_orders`.`user_id`
+    GROUP BY `users`.`id`
+    HAVING SUM(max_sales_orders.total_amount) = (
+        SELECT SUM(total_amount)
+        FROM orders
+        GROUP BY user_id
+        ORDER BY SUM(total_amount) DESC
+        LIMIT 1
+    );
+    
+1. Select all columns from the users table.
+2. Use an inner join to combine the users table with a subquery aliased as max_sales_orders using the user_id field.
+3. Group the result by the users->id column.
+4. Use the HAVING clause to filter the result based on the sum of total_amount from the max_sales_orders subquery, which calculates the highest total sales. The subquery in the HAVING clause finds the total sales of the user (or users) with the highest sales by summing the total_amount individually, then ordering the results in descending order and selecting the highest value with `LIMIT 1`.
 
+```
 ## Troubleshooting
 
 If you encounter any issues during deployment, please feel free to reach out to me for assistance.
