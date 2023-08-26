@@ -53,5 +53,3 @@ EXPOSE 9000
 
 # Switch to the non-root user
 USER www
-
-CMD ["php-fpm"]
