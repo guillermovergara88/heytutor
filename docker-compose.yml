@@ -1,5 +1,8 @@
 version: "3.8"
 
+networks:
+  app-network:
+    driver: bridge
 services:
   app:
     build:
@@ -14,17 +17,11 @@ services:
     volumes:
       - .:/var/www/html
       - ./deploy/local.ini:/usr/local/etc/php/conf.d/local.ini
-  webserver:
-    image: nginx:alpine
-    container_name: webserver
-    restart: unless-stopped
-    tty: true
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./:/var/www
-      - ./deploy/nginx/conf.d/:/etc/nginx/conf.d/
+    command: sh -c "while ! nc -z db 3306; do sleep 1; done && php artisan migrate && php artisan db:seed && php-fpm"
+    depends_on:
+      - db
+    networks:
+      - app-network
   db:
     image: mysql:8.0
     restart: always
@@ -41,6 +38,21 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./deploy/mysql/my.cnf:/etc/mysql/my.cnf
-
+    networks:
+      - app-network
+  webserver:
+    image: nginx:alpine
+    container_name: webserver
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www
+      - ./deploy/nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - app-network
 volumes:
   db_data:
+    driver: local
